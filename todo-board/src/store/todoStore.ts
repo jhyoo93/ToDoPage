@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 // 보드 타입 정의
 export type Board = {
@@ -29,7 +29,7 @@ type TodoStore = {
   reorderTasks: (boardId: string, sourceIndex: number, destinationIndex: number) => void;
 };
 
-// 상태 저장소 생성 (local Storage)
+// Zustand 스토어 생성
 export const useTodoStore = create<TodoStore>()(
   persist(
     (set) => ({
@@ -50,9 +50,7 @@ export const useTodoStore = create<TodoStore>()(
       // 보드 수정
       updateBoard: (id, title) =>
         set((state) => ({
-          boards: state.boards.map((board) =>
-            board.id === id ? { ...board, title } : board
-          ),
+          boards: state.boards.map((board) => (board.id === id ? { ...board, title } : board)),
         })),
 
       // 보드 삭제
@@ -65,27 +63,33 @@ export const useTodoStore = create<TodoStore>()(
       reorderBoards: (sourceIndex, destinationIndex) =>
         set((state) => {
           const updatedBoards = [...state.boards];
-          const [movedBoard] = updatedBoards.splice(sourceIndex, 1);
-          updatedBoards.splice(destinationIndex, 0, movedBoard);
+          const [movedBoard] = updatedBoards.splice(sourceIndex, 1); // 원래 위치에서 제거
+          updatedBoards.splice(destinationIndex, 0, movedBoard); // 새로운 위치에 삽입
+      
+          // 각 보드의 order 값을 다시 정렬
+          const reorderedBoards = updatedBoards.map((board, index) => ({
+            ...board,
+            order: index,
+          }));
 
-          return { boards: updatedBoards };
+          console.log("보드 순서 변경됨:");
+
+          reorderedBoards.forEach((board) =>
+            console.log(`ID: ${board.id}, Order: ${board.order}, Title: ${board.title}`)
+          );
+      
+          return { boards: reorderedBoards };
         }),
+      
 
-      // 할 일 추가 (버그 수정)
+      // 할 일 추가
       addTask: (boardId, content) =>
         set((state) => ({
           boards: state.boards.map((board) =>
             board.id === boardId
               ? {
                   ...board,
-                  tasks: [
-                    ...board.tasks,
-                    {
-                      id: crypto.randomUUID(),
-                      content,
-                      order: board.tasks.length,
-                    },
-                  ],
+                  tasks: [...board.tasks, { id: crypto.randomUUID(), content, order: board.tasks.length }],
                 }
               : board
           ),
@@ -98,9 +102,7 @@ export const useTodoStore = create<TodoStore>()(
             board.id === boardId
               ? {
                   ...board,
-                  tasks: board.tasks.map((task) =>
-                    task.id === taskId ? { ...task, content } : task
-                  ),
+                  tasks: board.tasks.map((task) => (task.id === taskId ? { ...task, content } : task)),
                 }
               : board
           ),
@@ -110,16 +112,11 @@ export const useTodoStore = create<TodoStore>()(
       deleteTask: (boardId, taskId) =>
         set((state) => ({
           boards: state.boards.map((board) =>
-            board.id === boardId
-              ? {
-                  ...board,
-                  tasks: board.tasks.filter((task) => task.id !== taskId),
-                }
-              : board
+            board.id === boardId ? { ...board, tasks: board.tasks.filter((task) => task.id !== taskId) } : board
           ),
         })),
 
-      // 할 일 순서 변경 (같은 보드 내에서)
+      // 할 일 순서 변경
       reorderTasks: (boardId, sourceIndex, destinationIndex) =>
         set((state) => {
           const updatedBoards = state.boards.map((board) => {
@@ -134,7 +131,11 @@ export const useTodoStore = create<TodoStore>()(
 
           return { boards: updatedBoards };
         }),
-    }),
-    { name: "todo-storage" } // Local Storage 저장 키 이름
+        
+      }),
+    {
+      name: "todo-storage",
+      storage: createJSONStorage(() => localStorage),
+    }
   )
 );
