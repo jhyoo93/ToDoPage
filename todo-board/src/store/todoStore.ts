@@ -1,33 +1,8 @@
+// src/store/todoStore.ts
+
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-
-// 보드 타입 정의
-export type Board = {
-  id: string;
-  title: string;
-  order: number;
-  tasks: Task[];
-};
-
-// 할 일 타입 정의
-export type Task = {
-  id: string;
-  content: string;
-  order: number;
-};
-
-// store 정의
-type TodoStore = {
-  boards: Board[];
-  addBoard: (title: string) => void;
-  updateBoard: (id: string, title: string) => void;
-  deleteBoard: (id: string) => void;
-  reorderBoards: (sourceIndex: number, destinationIndex: number) => void;
-  addTask: (boardId: string, content: string) => void;
-  updateTask: (boardId: string, taskId: string, content: string) => void;
-  deleteTask: (boardId: string, taskId: string) => void;
-  reorderTasks: (boardId: string, sourceIndex: number, destinationIndex: number) => void;
-};
+import { Board, Task, TodoStore } from "@/types"; 
 
 // Zustand 스토어 생성
 export const useTodoStore = create<TodoStore>()(
@@ -38,6 +13,7 @@ export const useTodoStore = create<TodoStore>()(
       // 보드 추가
       addBoard: (title) =>
         set((state) => {
+          if (!title.trim()) return state;
           const newBoard: Board = {
             id: crypto.randomUUID(),
             title,
@@ -50,7 +26,9 @@ export const useTodoStore = create<TodoStore>()(
       // 보드 수정
       updateBoard: (id, title) =>
         set((state) => ({
-          boards: state.boards.map((board) => (board.id === id ? { ...board, title } : board)),
+          boards: state.boards.map((board) =>
+            board.id === id ? { ...board, title } : board
+          ),
         })),
 
       // 보드 삭제
@@ -63,24 +41,17 @@ export const useTodoStore = create<TodoStore>()(
       reorderBoards: (sourceIndex, destinationIndex) =>
         set((state) => {
           const updatedBoards = [...state.boards];
-          const [movedBoard] = updatedBoards.splice(sourceIndex, 1); // 원래 위치에서 제거
-          updatedBoards.splice(destinationIndex, 0, movedBoard); // 새로운 위치에 삽입
-      
-          // 각 보드의 order 값을 다시 정렬
+          const [movedBoard] = updatedBoards.splice(sourceIndex, 1);
+          updatedBoards.splice(destinationIndex, 0, movedBoard);
+
           const reorderedBoards = updatedBoards.map((board, index) => ({
             ...board,
             order: index,
           }));
 
-          console.log("보드 순서 변경됨:");
-
-          reorderedBoards.forEach((board) =>
-            console.log(`ID: ${board.id}, Order: ${board.order}, Title: ${board.title}`)
-          );
-      
+          console.log("보드 정렬 변경:", reorderedBoards);
           return { boards: reorderedBoards };
         }),
-      
 
       // 할 일 추가
       addTask: (boardId, content) =>
@@ -112,27 +83,47 @@ export const useTodoStore = create<TodoStore>()(
       deleteTask: (boardId, taskId) =>
         set((state) => ({
           boards: state.boards.map((board) =>
-            board.id === boardId ? { ...board, tasks: board.tasks.filter((task) => task.id !== taskId) } : board
+            board.id === boardId
+              ? { ...board, tasks: board.tasks.filter((task) => task.id !== taskId) }
+              : board
           ),
         })),
 
-      // 할 일 순서 변경
-      reorderTasks: (boardId, sourceIndex, destinationIndex) =>
+      // 할 일 정렬 (보드 내 이동 및 보드 간 이동)
+      reorderTasks: (sourceBoardId, sourceIndex, destinationBoardId, destinationIndex) =>
         set((state) => {
+          console.log(`할 일 이동: ${sourceIndex} (보드 ${sourceBoardId}) → ${destinationIndex} (보드 ${destinationBoardId})`);
+      
+          let movedTask: Task | null = null;
+      
+          // 출발 보드에서 할 일 제거
           const updatedBoards = state.boards.map((board) => {
-            if (board.id !== boardId) return board;
-
-            const updatedTasks = [...board.tasks];
-            const [movedTask] = updatedTasks.splice(sourceIndex, 1);
-            updatedTasks.splice(destinationIndex, 0, movedTask);
-
-            return { ...board, tasks: updatedTasks };
+            if (board.id === sourceBoardId) {
+              const updatedTasks = [...board.tasks];
+              [movedTask] = updatedTasks.splice(sourceIndex, 1);
+              return { ...board, tasks: updatedTasks };
+            }
+            return board;
           });
-
-          return { boards: updatedBoards };
+      
+          if (!movedTask) return state; // 이동할 할 일이 없으면 기존 상태 유지
+      
+          // 도착 보드에 할 일 추가
+          return {
+            boards: updatedBoards.map((board) => {
+              if (board.id === destinationBoardId) {
+                const updatedTasks = [...board.tasks];
+                if(movedTask) {
+                  updatedTasks.splice(destinationIndex, 0, movedTask);
+                }             
+                return { ...board, tasks: updatedTasks };
+              }
+              return board;
+            }),
+          };
         }),
-        
-      }),
+
+    }),
     {
       name: "todo-storage",
       storage: createJSONStorage(() => localStorage),
