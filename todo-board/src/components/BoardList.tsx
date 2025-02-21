@@ -1,54 +1,59 @@
 "use client";
 
 import { useTodoStore } from "@/store/todoStore";
-import dynamic from "next/dynamic";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Board from "./Board";
+import { DropResult } from "react-beautiful-dnd";
 
-// `react-beautiful-dnd`를 클라이언트에서만 로드하도록 설정
-const DragDropContext = dynamic(() => import("react-beautiful-dnd").then((mod) => mod.DragDropContext), { ssr: false });
-const Droppable = dynamic(() => import("react-beautiful-dnd").then((mod) => mod.Droppable), { ssr: false });
-const Draggable = dynamic(() => import("react-beautiful-dnd").then((mod) => mod.Draggable), { ssr: false });
-
+// 보드 목록 렌더링 컴포넌트
+// export default를 사용하여 다른 파일에서 import불러올수 있음
 export default function BoardList() {
-  const { boards, reorderBoards } = useTodoStore();
+  // 보드를 이동하거나, 특정 보드 내에서 할 일을 이동할 수 있는 기능을 Zustand에서 가져옴
+  const { boards, reorderBoards, reorderTasks } = useTodoStore();
 
-  // 보드 드래그 앤 드롭 핸들러
-  const onDragEnd = (result: any) => {
-    const { source, destination, type } = result;
+  // 드래그 종료 이벤트
+  // 드래그가 끝날때 실행되는 함수
+  const onDragEnd = ({ source, destination, type }: DropResult) => { // 이동전 인덱스, 이동후 인덱스, 드래그 항목구분 보드/할일
+    // 드래그가 취소되면 아무 작업도 하지 않도록 설정
+    
+    console.log(source);
+    console.log(destination);
+    console.log(type);
+
     if (!destination) return;
-
+    
+    // 구분값이 보드일때
     if (type === "BOARD") {
-      if (source.index !== destination.index) {
-        reorderBoards(source.index, destination.index);
-      }
+      // 현재 위치에서 새 위치로 보드를 이동
+      reorderBoards(destination.index, source.index);
+      
+    // 구분값이 할일일때
+    } else if (type === "TASK") {
+      // from.droppableId: 어느 보드에서 이동했는지 확인
+      // from.index: 이전 위치, to.index: 새로운 위치
+      reorderTasks(destination.droppableId, destination.index, source.index);
     }
+
+    
   };
 
   return (
+    // @hello-pangea/dnd에서 제공하는 드래그 앤 드롭 기능을 감싸는 컨텍스트
+    // 
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="boards" type="BOARD" direction="horizontal">
-        {(provided) => (
-          <div
-            className="flex gap-6 mt-4 p-4 overflow-x-auto"
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-          >
-            {boards.map((board, boardIndex) => (
-              <Draggable key={board.id} draggableId={board.id} index={boardIndex}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className="flex-shrink-0"
-                  >
-                    {/* 개별 보드 컴포넌트 */}
+        {(prov) => (
+          <div ref={prov.innerRef} {...prov.droppableProps} className="flex justify-center gap-6 mt-8 p-4">
+            {boards.map((board, index) => (
+              <Draggable key={board.id} draggableId={board.id} index={index}>
+                {(prov) => (
+                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
                     <Board board={board} />
                   </div>
                 )}
               </Draggable>
             ))}
-            {provided.placeholder}
+            {prov.placeholder}
           </div>
         )}
       </Droppable>
