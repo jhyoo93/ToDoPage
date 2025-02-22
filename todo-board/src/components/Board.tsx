@@ -13,12 +13,13 @@ export default function Board({ board }: BoardProps) {
       <Button
         variant="icon"
         onClick={() => deleteBoard(board.id)}
-        className="absolute top-3 right-3 w-6 h-6 text-gray-500 hover:text-red-500 transition"
+        className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center"
         >
         ×
       </Button>
       <input
-        className="text-lg font-bold bg-transparent border-b-2 border-gray-300 w-full mb-4"
+        className="text-lg font-bold bg-transparent border-b-2 border-gray-300 w-full mb-4 
+                   focus:outline-none focus:ring-0 focus:border-gray-400"
         value={board.title || ""}
         onChange={(e) => updateBoard(board.id, e.target.value)}
       />
