@@ -6,22 +6,14 @@ import { useTodoStore } from "@/store/todoStore";
 import BoardList from "@/components/BoardList";
 import Button from "@/components/ui/Button";
 
-// 애플리케이션의 메인 페이지 역할
-// export default를 사용하여 다른 파일에서 import불러올수 있음 
 export default function Page() {
-  // 보드 제목을 입력하고 추가 버튼을 클릭하면 새로운 보드를 추가
-  // Zustand의 useTodoStore()를 사용하여 전역 상태 관리 함수
+
   const { addBoard } = useTodoStore();
-  // 사용자가 입력한 보드 제목을 상태로 관리하기위한 state
   const [title, setTitle] = useState("");
 
-  // 보드 추가 핸들러
   const addNewBoard = () => {
-    // 공백 입력 방지
     if (title.trim()) {
-      // 새로운 보드가 boards 배열에 추가
       addBoard(title);
-      // 입력 input 초기화
       setTitle("");
     }
   };

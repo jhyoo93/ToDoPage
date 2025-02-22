@@ -4,10 +4,7 @@ import { useTodoStore } from "@/store/todoStore";
 import Button from "./ui/Button";
 import { TaskProps } from "@/types";
 
-// 보드내 할일 컴포넌트
-// export default를 사용하여 다른 파일에서 import불러올수 있음
-export default function Task({ boardId, task }: TaskProps) { // 보드 구분값, 할일 데이터, TaskProps을 사용하여 올바른 타입보장
-  // 할 일의 내용을 수정하거나 삭제하는 기능을 Zustand에서 가져옴
+export default function Task({ boardId, task }: TaskProps) {
   const { updateTask, deleteTask } = useTodoStore();
 
   return (
