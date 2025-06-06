@@ -19,7 +19,7 @@ export default function TaskList({ boardId }: TaskListProps) {
             <Draggable key={task.id} draggableId={task.id} index={taskIndex}>
               {(prov) => (
                 <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
-                  {/*할일 컴포넌트 렌더링*/}
+
                   <Task boardId={boardId} task={task} />
                 </div>
               )}
