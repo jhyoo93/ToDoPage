@@ -16,7 +16,7 @@ export default function Task({ boardId, task }: TaskProps) {
         onChange={(e) => updateTask(boardId, task.id, e.target.value)}
         onBlur={(e) => updateTask(boardId, task.id, e.target.value)}
       />
-      
+
       <Button
         variant="icon"
         onClick={() => deleteTask(boardId, task.id)}
@@ -24,7 +24,7 @@ export default function Task({ boardId, task }: TaskProps) {
       >
         ×
       </Button>
-      
+
     </li>
   );
 }

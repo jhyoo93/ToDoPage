@@ -11,7 +11,7 @@ interface ButtonProps {
 };
 
 // 공통 버튼 컴포넌트
-export default function Button({ children, onClick, variant = "primary", className= ""}: ButtonProps) {
+export default function Button({ children, onClick, variant = "primary", className = "" }: ButtonProps) {
 
     // 기본 스타일
     const variants = {
@@ -25,15 +25,10 @@ export default function Button({ children, onClick, variant = "primary", classNa
     const baseStyles = "px-4 py-2 rounded-lg font-semibold transition shadow-md";
 
     // 크기 스타일
-    const sizes = {
-        default: "px-4 py-2",
-        small: "px-2 py-1 text-sm",
-        icon: "w-6 h-6 text-lg", // X 버튼 사이즈 조절
-    };
 
     return (
         <button onClick={onClick} className={`${baseStyles} ${variants[variant]} ${className}`}>
-          {children}
+            {children}
         </button>
-      );
+    );
 }

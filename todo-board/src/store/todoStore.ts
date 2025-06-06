@@ -11,7 +11,7 @@ export const useTodoStore = create<TodoStore>()(
       addBoard: (title) =>
         set((state) => {
           if (!title.trim()) return state;
-          return {           
+          return {
             boards: [...state.boards, { id: crypto.randomUUID(), title, tasks: [] }],
           };
         }),
@@ -24,14 +24,14 @@ export const useTodoStore = create<TodoStore>()(
 
       // 보드 삭제
       deleteBoard: (id) =>
-        set((state) => ({ 
+        set((state) => ({
           boards: state.boards.filter((b) => b.id !== id),
         })),
 
       // 보드 순서 변경
-      reorderBoards: (fromIndex, toIndex) => 
+      reorderBoards: (fromIndex, toIndex) =>
         set((state) => {
-          const boards = [...state.boards]; 
+          const boards = [...state.boards];
           const [moved] = boards.splice(fromIndex, 1);
           boards.splice(toIndex, 0, moved);
           return { boards };
@@ -39,8 +39,8 @@ export const useTodoStore = create<TodoStore>()(
 
       // 할 일 추가
       addTask: (boardId) =>
-        set((state) => ({      
-          boards: state.boards.map((b) => 
+        set((state) => ({
+          boards: state.boards.map((b) =>
             b.id === boardId
               ? { ...b, tasks: [...b.tasks, { id: crypto.randomUUID(), content: "" }] }
               : b
@@ -53,9 +53,9 @@ export const useTodoStore = create<TodoStore>()(
           boards: state.boards.map((b) =>
             b.id === boardId
               ? {
-                  ...b,
-                  tasks: b.tasks.map((t) => (t.id === taskId ? { ...t, content } : t)),
-                }
+                ...b,
+                tasks: b.tasks.map((t) => (t.id === taskId ? { ...t, content } : t)),
+              }
               : b
           ),
         })),
@@ -74,9 +74,9 @@ export const useTodoStore = create<TodoStore>()(
           console.log(`할 일 정렬: ${fromIndex} → ${toIndex} (보드 ${boardId})`);
           return {
             boards: state.boards.map((b) => {
-              if (b.id !== boardId) return b;   
+              if (b.id !== boardId) return b;
 
-              const tasks = [...b.tasks];             
+              const tasks = [...b.tasks];
               const [moved] = tasks.splice(fromIndex, 1);
               tasks.splice(toIndex, 0, moved);
               return { ...b, tasks };
@@ -84,6 +84,6 @@ export const useTodoStore = create<TodoStore>()(
           };
         }),
     }),
-    { name: "todo-storage", storage: createJSONStorage(() => localStorage) } 
+    { name: "todo-storage", storage: createJSONStorage(() => localStorage) }
   )
 );

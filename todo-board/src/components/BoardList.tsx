@@ -9,20 +9,20 @@ export default function BoardList() {
   const { boards, reorderBoards, reorderTasks } = useTodoStore();
 
   const onDragEnd = ({ source, destination, type }: DropResult) => {
-    
+
     console.log(source);
     console.log(destination);
     console.log(type);
 
     if (!destination) return;
-    
+
     if (type === "BOARD") {
-      reorderBoards(destination.index, source.index);     
+      reorderBoards(destination.index, source.index);
     } else if (type === "TASK") {
       reorderTasks(destination.droppableId, destination.index, source.index);
     }
 
-    
+
   };
 
   return (
